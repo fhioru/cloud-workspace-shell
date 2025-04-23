@@ -1,0 +1,11 @@
+#cmd: ec2 describe-prefix-lists
+#sort: PrefixListName
+
+.PrefixLists[]? | 
+{
+        Cidrs: (if .Cidrs? // false then ( .Cidrs | join(", ") ) else "None" end)
+}
++
+(
+    del(.Cidrs) | map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+)

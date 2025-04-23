@@ -1,0 +1,8 @@
+#cmd: cloudtrail describe-trails
+#sort: Name
+#geo: global
+
+.trailList[]? |
+    (
+        map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+    )

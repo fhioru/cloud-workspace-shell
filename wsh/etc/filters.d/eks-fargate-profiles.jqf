@@ -1,0 +1,12 @@
+#foreach: eks list-clusters | jq -r '.clusters[]'
+#cmd: eks list-fargate-profiles  --cluster-name ${item}
+#enrich: jq --arg item "${item}" '(.clusterName) = $item'
+
+.[] |
+    {
+        profileNames: (if .fargateProfileNames? // false then (.fargateProfileNames | join(",")) else "None" end)        
+    }
+    +
+    (   
+        del(.profileNames) | map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+    )

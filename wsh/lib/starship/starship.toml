@@ -1,0 +1,93 @@
+# A continuation prompt that displays two filled in arrows
+continuation_prompt = "▶▶ "
+
+format = """
+${custom.WSH_PROMPT_MARKER}\
+$time\
+$env_var\
+${custom.WSH_AWS_TOKEN_EXPIRY} \
+$directory\
+$line_break\
+$git_branch\
+$git_commit\
+$git_state\
+$git_status\
+$status\
+$character"""
+
+[directory]
+truncation_length = 3
+truncation_symbol = "…/"
+truncate_to_repo = true
+home_symbol = "~"
+read_only = "🔒"
+format = "[$path]($style)[$read_only]($read_only_style) "
+# style = "black bold dimmed"
+
+[custom.WSH_PROMPT_MARKER]
+when = "true"
+format = "[ 🌮 WSH ](bg:#2C2C34 fg:#ffe265)"
+description = "The begining of the Cloud Assistant Shell prompt"
+
+[time]
+disabled = false
+time_format = "%T"
+format = "[ ](bg:#494850 fg:#2C2C34)[$time ](bg:#494850 fg:#F2F2F2)"
+
+[env_var.WSH_AWS_ID_NAME]
+variable = "AWS_ID_NAME"
+format = "[ ](bg:#F27059 fg:#494850)[$env_value ](bg:#F27059 fg:#FFFFFF)"
+
+[env_var.WSH_AWS_DEFAULT_REGION]
+variable = "AWS_DEFAULT_REGION"
+format = "[ ](bg:#F7B267 fg:#F27059)[$env_value ](bg:#F7B267 fg:#2C2C34)"
+
+[custom.WSH_AWS_TOKEN_EXPIRY]
+when = """ test "$AWS_SESSION_EXPIRATION" """
+unsafe_no_escape = true
+symbol = "⏱"
+command = """ /opt/wsh/lib/starship/aws-token-expiry "${AWS_SESSION_EXPIRATION}" """
+format = "[ ](bg:none fg:#F7B267)$output"
+
+[git_branch]
+symbol = " "
+truncation_symbol = ""
+format = "[ $symbol$branch ](bg:#00875f fg:#121212)[](bg:00875f fg:#00875f)"
+
+[git_commit]
+disabled = false
+commit_hash_length = 7
+format = '[[](bg:#00875f fg:#464347)\($hash\)[](bg:#464347 fg:#00875f)]($style)'
+style = "bg:#00875f fg:black"
+only_detached = true
+
+[git_state]
+disabled = false
+rebase = "REBASING"
+merge = "MERGING"
+revert = "REVERTING"
+cherry_pick = "CHERRY-PICKING"
+bisect = "BISECTING"
+am = "AM"
+am_or_rebase = "AM/REBASE"
+style = "bg:yellow fg:black"
+format = '\([[](bg:yellow fg:#464347)$state( $progress_current/$progress_total )[](bg:#464347 fg:yellow)]($style)\)'
+
+[git_status]
+disabled = false
+format = '($ahead_behind$all_status )'
+conflicted = "[](fg:cyan)[ =${count} ](bg:cyan fg:#464347)"
+stashed = "[](fg:green)[  ${count} ](bg:inverted fg:green)[](fg:green)"
+deleted = "[](fg:red)[ ✘${count} ](bg:inverted fg:red)[](fg:red)"
+renamed = "[](fg:orange)[ »${count} ](bg:inverted fg:orange)[](fg:orange)"
+modified = "[](fg:#E05561)[ !${count} ](bg:#E05561 fg:black)[](fg:#E05561)"
+staged = "[](fg:#5F8700)[  ${count} ](bg:#5F8700 fg:black)[](fg:#5F8700)"
+untracked = "[](fg:#8A8A8A)[ ±${count} ](bg:#8A8A8A fg:black)[](fg:#8A8A8A)"
+diverged = '[](fg:#F0A45D)[ ⇕ ⇡${ahead_count} ⇣${behind_count} ](bg:#F0A45D fg:black)[](fg:#F0A45D)'
+ahead = '[](fg:#F0A45D)[ ⇡${count} ](bg:#F0A45D fg:black)[](fg:#F0A45D)'
+behind = '[](fg:#F0A45D)[ ⇣${count} ](bg:#F0A45D fg:black)[](fg:#F0A45D)'
+
+
+# 
+# 
+#  

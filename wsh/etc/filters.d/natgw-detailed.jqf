@@ -1,0 +1,17 @@
+#cmd: ec2 describe-nat-gateways
+#sort: VpcId,SubnetId,Name
+
+.NatGateways | .[]? | 
+{
+        Name: ((.Tags[]?|select(.Key=="Name")|.Value) // "None"),
+        PrivateIP: (if .NatGatewayAddresses[]? // false then ( .NatGatewayAddresses|.[0]|.PrivateIp ) else "None" end),
+        PublicIP: (if .NatGatewayAddresses[]? // false then ( .NatGatewayAddresses|.[0]|.PublicIp ) else "None" end)
+}
++
+(
+    del(.Name, .PrivateIP, .PublicIP) | map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+)
++
+(
+    (.Tags // [])|from_entries
+)

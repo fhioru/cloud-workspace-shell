@@ -1,0 +1,11 @@
+#cmd: rds describe-db-subnet-groups
+#sort: VpcId,DBSubnetGroupName
+
+.DBSubnetGroups[]? | 
+{
+        Subnets: (if .Subnets[]?.SubnetIdentifier? // false then ( [ .Subnets[]?.SubnetIdentifier ]|join(", ") ) else "None" end)
+}
++
+(
+    del(.Subnets) | map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+)

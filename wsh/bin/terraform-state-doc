@@ -1,0 +1,155 @@
+#!/usr/bin/env python3
+
+'''
+Terraform-State-Doc generates detailed and organized documentation from Terraform state files.
+It's essential for DevOps, cloud engineers, and anyone using Terraform to maintain well-documented infrastructure.
+
+Usage:
+    terraform-state-doc [options]
+    terraform-state-doc ( -h | --help )
+
+Options:
+    -o, --output=FILE          Markdown documentation file name [default: TERRAFORM-STATE-DOCUMENTATION.md]
+    -h, --help            Show this help message and exit
+    --debug               More verbose (usually debug) logging and output
+
+'''
+
+import json
+import json2table
+import subprocess
+import pandas as pd
+import docopt
+from packaging import version
+
+minimum_tf_version = "0.15.5"
+
+def extract_resources(module, df):
+    if isinstance(module, dict):
+        for key in module.keys():
+            if key == "resources":
+                df = pd.concat([df, pd.DataFrame(module[key])], ignore_index=True)
+            else:
+                df = extract_resources(module[key], df)
+    elif isinstance(module, list):
+        for item in module:
+            if isinstance(item, dict):
+                df = extract_resources(item, df)
+    return df
+
+
+def is_version_lower(version_string, compare_to=minimum_tf_version):
+    return version.parse(version_string) < version.parse(compare_to)
+
+
+def is_valid_json(s):
+  try:
+    json.loads(s)
+  except ValueError as e:
+    return False
+  return True
+
+
+def rich_format(v):
+  if is_valid_json(v):
+    return json2html.convert(json.loads(v))
+  return v
+
+
+def is_terraform_state_empty():
+    result = subprocess.run(['terraform', 'show', '-json'], stdout=subprocess.PIPE)
+    state = json.loads(result.stdout)
+
+    # Get the 'values' key from the state, or an empty dictionary if 'values' is not present
+    values = state.get('values', {})
+
+    # Get the 'root_module' key from the values, or an empty dictionary if 'root_module' is not present
+    root_module = values.get('root_module', {})
+
+    # Check if root_module list is empty
+    return len(root_module) == 0
+
+
+def main(options):
+    result = subprocess.run(["terraform", "show", "-json"], stdout=subprocess.PIPE)
+    data = json.loads(result.stdout)
+
+    if not is_terraform_state_empty():
+
+        if not is_version_lower(data["terraform_version"]):
+
+            df = pd.DataFrame()
+            df = extract_resources(data["values"]["root_module"], df)
+            # Sort the DataFrame
+            df = df.sort_values(by="type")
+            columns_to_drop = ["sensitive_values", "depends_on", "index", "provider_name"]
+            # Only keep the columns that actually exist in the DataFrame
+            columns_to_drop = [col for col in columns_to_drop if col in df.columns]
+            # Drop the columns
+            df = df.drop(columns_to_drop, axis=1)
+            cols = list(df.columns)
+            cols.insert(0, cols.pop(cols.index("name")))
+            cols.append(cols.pop(cols.index("values")))
+            df = df.loc[:, cols]
+
+            # Get unique values from a column
+            unique_resource_type = list(df["type"].unique())
+
+            with open(options['--output'], "w") as f:
+                f.write("# AS BUILT DOCS\n\n")
+                f.write(
+                    "This document represents the current state of resources provisioned from Terraform IaaC (Infrastructure as Code).\n\n"
+                )
+                f.write("## Table of Contents\n\n")
+                for resource_type in unique_resource_type:
+                    f.write(f"[{resource_type}](#{resource_type})\n\n")
+                f.write("## Stack Resources\n\n")
+                for resource_type in unique_resource_type:
+                    f.write(f"### {resource_type}\n\n\n\n")
+                    rows = df.loc[df["resource_type"] == resource_type]
+                    for index, row in rows.iterrows():
+                        f.write(f"#### {row['name']}\n\n\n\n")
+                        for column in row.index:
+                            if column != "name":
+                                if column == "values":
+                                    filtered_dict = {k: v for k, v in row[column].items() if v}
+                                    enriched_values = {k: rich_format(v) for k,v in filtered_dict.items()}
+                                    values_df = pd.DataFrame([enriched_values])
+                                    values_df = values_df.transpose()
+                                    values_df.reset_index(inplace=True)
+                                    values_df.columns = ["key", "value"]
+                                    values_df.dropna(axis=1, how="all", inplace=True)
+
+
+                                    # Convert DataFrame to markdown table
+                                    df_markdown = enriched_values.to_html(index=False)
+
+                                    # Add a tab to each line
+                                    # df_markdown = "\n".join(
+                                    #     ["\t" + line for line in df_markdown.split("\n")]
+                                    # )
+
+                                    f.write(f"{df_markdown}")
+                                else:
+                                    if column not in ["mode", "schema_version"]:
+                                        f.write(f"- **{column}**: {row[column]}\n")
+                        f.write("\n\n")
+            print("Documentation generated successfully")
+
+        else:
+            print(f"Minimum suported terraform version is {minimum_tf_version}")
+            exit(1)
+
+    else:
+        print("Terraform state file is empty.")
+        exit(1)
+
+if __name__ == "__main__":
+
+    try:
+        options = docopt.docopt(__doc__)
+        main(options)
+
+    # Handle invalid options
+    except docopt.DocoptExit as e:
+        print(e.message)

@@ -1,0 +1,13 @@
+#foreach: ecs list-clusters | jq -r '.clusterArns[]'
+#cmd: ecs list-services --cluster ${item}
+#enrich: jq --arg item "${item}" '(.clusterName) = $item'
+#tidy: wsh-arnchomp
+
+.[] |
+    {
+        serviceArns: [(.serviceArns[]? // "None")] | join(",")
+    }
+    +
+    (
+        del(.serviceArns) | map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+    )

@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+
+if [ ! -n "$BASH_VERSION" ]; then
+    echo "Use a BASH Shell. You will regret this. Basic mode enabled"
+fi
+
+##############################################################################
+# Variables
+##############################################################################
+
+CONST_SCRIPT_PATH=${0}
+CONST_SCRIPT_CALLER="${BASH_SOURCE[0]}"
+
+# Default for WSH_ROOT if unset
+: "${WSH_ROOT:='/opt/wsh'}"
+
+
+# Defining True and False to improve readability in scripts
+TRUE=0
+FALSE=1
+
+# These logging flags should be re-set in the main script but are defined here
+# to provide defaults
+# Current logging config
+TTY_OUTPUT_ENABLED=$FALSE
+LOG_OUTPUT_ENABLED=$TRUE
+SYSLOG_OUTPUT_ENABLED=$FALSE
+EVENT_OUTPUT_ENABLED=$FALSE
+export TTY_OUTPUT_ENABLED LOG_OUTPUT_ENABLED SYSLOG_OUTPUT_ENABLED EVENT_OUTPUT_ENABLED
+
+# Default timestamp format
+FV_TIMESTAMP_FORMAT='%Y-%m-%d %H:%M:%S'
+export FV_TIMESTAMP_FORMAT
+
+# Define a session ID that can be used for ephemeral session data
+WSH_SESSION_ID=$(uuid)
+
+##############################################################################
+# Aliases
+##############################################################################
+
+alias cat='bat --paging=never --style plain'
+alias ask='/opt/wsh/bin/subcommands/wsh-ask'
+alias glow='glow --pager --width 140'
+# Default to excluding binary files
+alias grep='/bin/grep --binary-files=without-match'
+
+################################################################################
+# Bo not edit below
+################################################################################
+
+export TRUE FALSE WSH_ROOT WSH_SESSION_ID
+
+# Load the helper scripts
+for helper_script in ${WSH_ROOT}/lib/functions.d/* ; do
+    . "$helper_script"
+done
+
+# Load WSH global config if found
+if [ -f "${HOME}/.wsh/config.d/wsh.conf" ]; then
+  global_config=$(mktemp ${WSH_ROOT}/tmp/awsmfaXXXX)
+  "${WSH_ROOT}/bin/tools/wsh-config-parser" "${HOME}/.wsh/config.d/wsh.conf" > "${global_config}"
+  . "${global_config}"
+fi
+
+# Update the PATH
+PATH=$PATH:${WSH_ROOT}/bin
+PATH=$PATH:${WSH_ROOT}/bin/tools
+export PATH
+
+# Activate the AWS an WSH CLI completer
+if [ -n "$BASH_VERSION" ]; then
+    complete -C aws_completer aws
+    source ${WSH_ROOT}/etc/wsh_bash_completion
+    complete -F _wsh wsh
+    source /usr/share/bash-completion/completions/git
+fi
+
+__starship() {
+    local major="${BASH_VERSINFO[0]}"
+    local minor="${BASH_VERSINFO[1]}"
+
+    if ((major > 4)) || { ((major == 4)) && ((minor >= 1)); }; then
+        source <(/usr/local/bin/starship init bash --print-full-init)
+    else
+        source /dev/stdin <<<"$(/usr/local/bin/starship init bash --print-full-init)"
+    fi
+}
+__starship
+unset -f __starship

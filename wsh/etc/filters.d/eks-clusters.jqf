@@ -1,0 +1,12 @@
+#foreach: eks list-clusters | jq -r '.clusters | .[]'
+#cmd: eks describe-cluster --name ${item}
+#sort: name
+#tidy: wsh-arnchomp
+
+.[] | .cluster | (
+   map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+)
++
+(
+   (.tags // {})
+)

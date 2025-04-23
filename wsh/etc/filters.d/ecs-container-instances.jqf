@@ -1,0 +1,13 @@
+#foreach: ecs list-clusters | jq -r '.clusterArns[]'
+#cmd:  ecs list-container-instances --cluster ${item}
+#enrich: jq --arg item "${item}" '(.clusterName) = $item'
+#tidy: wsh-arnchomp
+
+.[]? |
+    {
+        containerInstanceArns: [(.containerInstanceArns[]? // "None")] | join(",")
+    }
+    +
+    (
+        del(.containerInstanceArns ) | map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+    )

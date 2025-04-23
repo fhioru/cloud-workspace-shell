@@ -1,0 +1,19 @@
+#cmd: ec2 describe-network-acls
+#sort: VpcId,NetworkAclId,RuleNumber
+
+.NetworkAcls[] | 
+{
+        Associations: (if .Associations? // false then ( [.Associations[]?.SubnetId] |join(", ")) else "None" end)
+}
++
+(
+    del(.Associations) | map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+)
++
+(
+    (.Tags // [])|from_entries
+)
++
+(
+    (.Entries[] // [])
+)

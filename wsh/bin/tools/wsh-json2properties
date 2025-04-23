@@ -1,0 +1,124 @@
+#!/usr/bin/env python3
+
+"""
+Simple utility for converting JSON to Java Properties (dotted) notation
+
+Usage:
+  wsh-json2properties [options]
+
+Options:
+  -h --help           Show this help message and exit
+  -s --sep=<sep>      Separator of key hierarchy [default: .]
+  -e --eq=<eq>        Separator of key and value [default: =]
+  --tsv               Format as tsv (e.g., json{a:{b:1,c:2}} becomes "a.b\t1\na.c\t2")
+  --listkey=<lambda>  Define callback lambda that formats list key. Lambda has argument name 'key'
+                      [example: --listkey "'*'"]
+  -l                  Do not print list key (same as setting listkey to None)
+  --format=<lambda>   Define callback lambda that formats value. Lambda has argument name 'val'
+                      [default: json.dumps(val)]
+
+Examples:
+  curl -s https://api.github.com/gists/public | wsh-json2properties | grep "aaa.bbb"
+  aws ec2 describe-instances --filter '{"Name":"tag:Name","Values": ["ft01"]}' \\
+    | wsh-json2properties --tsv | awk '/InstanceId/{print $2}'
+"""
+
+import sys
+import json
+from docopt import docopt
+
+class Dumper:
+
+    def as_dict(self, v, prefix=[]):
+        for k in v.keys():
+            for a in self.apply(v[k], self.append_key(k, prefix)):
+                yield a
+
+    def as_list(self, val, key=[]):
+        for (i, v) in enumerate(val):
+            for a, b in self.apply(v, self.append_key(i, key)):
+                yield a, b
+
+    def append_key(self, key, prefix=[]):
+        return prefix + [key]
+
+    def as_value(self, key, value):
+        yield key, value
+
+    def apply(self, v, prefix=[]):
+        if isinstance(v, dict):
+            for a in self.as_dict(v, prefix):
+                yield a
+        elif isinstance(v, list):
+            for a in self.as_list(v, prefix):
+                yield a
+        else:
+            yield prefix, v
+
+
+class Formatter:
+
+    def __init__(self, sep='.', eq='='):
+        self.sep = sep
+        self.eq = eq
+
+    def format_list_key(self, key):
+        return key
+
+    def format_key(self, key):
+        if isinstance(key, int):
+            k = self.format_list_key(key)
+            if k is None:
+                return k
+            else:
+                return str(k)
+        return key
+
+    def format_keys(self, key):
+        return self.sep.join([ks for ks in [self.format_key(k) for k in key] if not(ks is None)])
+
+    def format_val(self, val):
+        return json.dumps(val)
+
+    def format(self, key, val):
+        return self.format_keys(key) + self.eq + str(self.format_val(val))
+
+
+class Json2Line:
+
+    def __init__(self, options=None):
+        self.dumper = Dumper()
+        self.formatter = Formatter()
+
+        if options is None:
+            options = docopt(__doc__)
+
+        # Configure formatter based on options
+        self.formatter.sep = options['--sep']
+        self.formatter.eq = options['--eq']
+
+        if options['--tsv']:
+            self.formatter.eq = '\t'
+            self.formatter.format_val = lambda val: val
+
+        if options['-l']:
+            self.formatter.format_list_key = lambda key: None
+
+        if options['--listkey']:
+            lf = options['--listkey']
+            self.formatter.format_list_key = lambda key: eval(lf)
+
+        if options['--format']:
+            f = options['--format']
+            self.formatter.format_val = lambda val: eval(f)
+
+    def apply(self, data):
+        for k, v in self.dumper.apply(data):
+            yield self.formatter.format(k, v)
+
+
+if __name__ == "__main__":
+    options = docopt(__doc__)
+    for l in Json2Line(options).apply(json.load(sys.stdin)):
+        print(l)
+

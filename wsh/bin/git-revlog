@@ -1,0 +1,34 @@
+#!/bin/bash
+# Generate a CHANGELOG from the git history in MarkDown compatible format
+
+echo "## CHANGELOG
+
+> Below are significant or impactful changes present in the listed version(s)
+"
+
+# Get all the git tags, adding an extra one for the initial commit
+tags="HEAD $(git tag --sort=-committerdate) $(git rev-list HEAD | tail -n 1)"
+declare -a vstags=($tags)
+
+# Loop through each tag
+for tag in "${vstags[@]}"; do
+
+    if [[ -n "${prev_tag}" ]]; then
+
+      # Get the commit messages between the previous and current tag
+      commits=$(git log --no-merges --pretty=format:"- %s" ${tag}..${prev_tag})
+
+      # Print the heading for the current tag
+      echo ""
+      echo "### v${prev_tag}"
+      echo ""
+
+      # Print the commit messages as bullet points under the current tag
+      echo "${commits}"
+
+    fi
+
+    # Set previous tag for next iteration
+    prev_tag="${tag}"
+
+done

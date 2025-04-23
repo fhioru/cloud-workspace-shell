@@ -1,0 +1,15 @@
+#cmd: ec2 describe-subnets
+#sort: VpcId,AvailabilityZone,CidrBlock,Name
+
+.Subnets[]? | 
+{
+        Name: ((.Tags[]?|select(.Key=="Name")|.Value) // "None")
+}
++
+(
+    del(.Name) | map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+)
++
+(
+    (.Tags // [])|from_entries
+)

@@ -1,0 +1,8 @@
+#cmd: iam list-server-certificates
+#sort: ServerCertificateName,Expiration,UploadDate,Arn
+#geo: global
+
+.ServerCertificateMetadataList[] |
+    (   
+        map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+    )

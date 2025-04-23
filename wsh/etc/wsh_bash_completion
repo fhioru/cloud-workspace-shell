@@ -1,0 +1,30 @@
+# Basic completion for BASH by listing available commands
+
+_wsh()
+{
+    local cur prev opts base
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    case ${COMP_CWORD} in
+        1)
+            opts="$(wsh -c)"
+            COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+            ;;
+        2)
+            case ${prev} in
+                list|dump)
+                    opts="$(wsh list -c)"
+                    COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+                    ;;
+            esac
+            ;;
+        *)
+            COMPREPLY=()
+            ;;
+    esac
+
+    return 0
+}
+

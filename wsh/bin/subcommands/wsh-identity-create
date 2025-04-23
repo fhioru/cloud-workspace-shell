@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+#
+# Simple credentials creation
+#
+
+##############################################################################
+# Shell Behaviour
+##############################################################################
+
+# Check for unbound variables being used
+# set -o nounset
+
+# Exit is a bad command is attempted. If you're going to handle errors then
+# leave this disabled
+# set -o errexit
+
+# Exit if any of the commands in a pipeline exit with a non-zero exit code
+# set -o pipefail
+
+##############################################################################
+# Variables
+##############################################################################
+
+CONST_COMMAND_LINE="$@"
+CONST_OS_VERSION=$(uname -r)
+CONST_SYSTEM_TYPE=$(uname -m)
+CONST_SCRIPT_NAME=${0##*/}
+
+# Default for WSH_ROOT if unset
+: "${WSH_ROOT:='/opt/wsh'}"
+
+# Load the Framework
+source ${WSH_ROOT}/etc/wshrc
+
+# Current logging config
+TTY_OUTPUT_ENABLED=$TRUE
+LOG_OUTPUT_ENABLED=$TRUE
+SYSLOG_OUTPUT_ENABLED=$FALSE
+EVENT_OUTPUT_ENABLED=$TRUE
+export TTY_OUTPUT_ENABLED LOG_OUTPUT_ENABLED SYSLOG_OUTPUT_ENABLED EVENT_OUTPUT_ENABLED
+
+# Default log file
+DEFAULT_OUT="${HOME}/.wsh/log/${CONST_SCRIPT_NAME}.log"
+# Define somewhere for specific log messages to go
+EVENT_LOG="${HOME}/.wsh/log/${CONST_SCRIPT_NAME}_events.log"
+export DEFAULT_OUT EVENT_LOG
+
+# Trap  abnormal termination
+trap cleanup 1 2 3 15
+
+
+##############################################################################
+# Functions
+##############################################################################
+
+function show_usage {
+    cat <<EOF
+usage: $CONST_SCRIPT_NAME [--help] [-mfa]
+
+Simple wrapper to create a basic WSH profile
+
+Options:
+    -mfa               Prompt for MFA URN
+
+EOF
+}
+
+
+function cleanup {
+    echo "Exiting."
+    exit 1
+}
+
+# Check if MFA. It is the only option.
+if [ "$1" == '-mfa' ]; then
+    mfa_option="${TRUE}"
+    shift
+fi
+
+# show help for any other arguments if stdin is a terminal
+if [ "$1" != "" ]; then
+    show_usage
+    exit 0
+fi
+
+##############################################################################
+# Main Script
+##############################################################################
+
+echo "WSH-ID - Identity Name (eg. PERSONAL-ROOT-jeff-eu-west-1, PERSONAL-IAM-jeff-us-east-1) "
+read -r -p "Name: " id_name
+
+if [ ! -d "$HOME/.wsh/identities/${id_name}" ]; then
+    mkdir -p "${HOME}/.wsh/identities/${id_name}"
+else
+    echo "WSH-ID: Name already exists!"
+    exit 1
+fi
+
+read -r -p "WSH-ID - AWS Access Key: " id_access_key
+read -r -p "WSH-ID - AWS Secret: " id_secret
+read -r -p "WSH-ID - AWS Default Region: " id_default_region
+
+if [ "$id_default_region" == "" ]; then
+    id_default_region="eu-west-1"
+fi
+
+if [ "${mfa_option}" == "${TRUE}" ]; then
+    read -r -p "WSH-ID - AWS MFA URN: " aws_mfa_id
+fi
+
+config_file="$HOME/.wsh/identities/${id_name}/aws.conf"
+cat > "${config_file}" <<EOF
+[default]
+output=json
+aws_access_key_id=${id_access_key}
+aws_secret_access_key=${id_secret}
+region=${id_default_region}
+EOF
+
+if [ "${mfa_option}" == "${TRUE}" ]; then
+cat >> "${config_file}" <<EOF
+aws_mfa_id=${aws_mfa_id}
+EOF
+fi
+
+cat >> "${config_file}" <<EOF
+
+[preview]
+cloudfront=true
+EOF
+
+ssh_key_file="$HOME/.wsh/identities/${id_name}/ssh_id.pem"
+touch "${ssh_key_file}"
+chmod 400 "${ssh_key_file}"
+
+echo "WSH-ID - Basic Identity created: ${config_file}"

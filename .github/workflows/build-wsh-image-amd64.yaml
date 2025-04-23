@@ -1,0 +1,45 @@
+name: Build AMD64 image layers
+run-name: ${{ github.actor }} building AMD64 image
+
+on:
+  push:
+    branches:
+      - 'master'
+    tags:
+      - 'v*'
+
+jobs:
+  Build-AMD64-image:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+
+      - name: Login to container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          # platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
+          push: true
+          context: .
+          file: build/amd64/Dockerfile
+          tags: "ghcr.io/fhioru/wsh:${{gitea.sha}},ghcr.io/fhioru/wsh:latest"
+
+

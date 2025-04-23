@@ -1,0 +1,41 @@
+.git
+local/
+tmp/
+log/
+doc/
+docs/
+.gitignore
+.vagrant/
+test/
+mkdocs.yml
+README.md
+CHANGELOG.md
+CONTRIBUTORS.md
+
+/log
+/tmp
+/local
+/scratch
+/.vagrant
+
+# IDEs
+.idea/
+.project
+.pydevproject
+.settings/
+
+### Vim ###
+*.swp
+
+### SublimeText ###
+# workspace files are user-specific
+*.sublime-workspace
+*.sublime-project
+*.sublime*
+
+### Python ###
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pth
+

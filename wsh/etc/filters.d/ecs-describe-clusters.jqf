@@ -1,0 +1,19 @@
+#foreach: ecs list-clusters | jq -r '.clusterArns[]'
+#cmd:  ecs describe-clusters --cluster ${item}
+#tidy: wsh-arnchomp
+
+.[] | .clusters[] |
+    {
+        statistics: (if .statistics? // false then ([.statistics[]?] | join(",")) else "None" end),
+        settings: (if .settings? // false then ([.settings[]?] | join(",")) else "None" end),
+        capacityProviders: (if .capacityProviders? // false then ([.capacityProviders[]?] | join(",")) else "None" end),
+        defaultCapacityProviderStrategy: (if .defaultCapacityProviderStrategy? // false then ([.defaultCapacityProviderStrategy[]?] | join(",")) else "None" end)
+    }
+    +
+    (
+        del(.statistics, .settings, .capacityProviders, .defaultCapacityProviderStrategy) | map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+    )
+    +
+    (
+        (.Tags // [])|from_entries
+    )

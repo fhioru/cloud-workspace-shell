@@ -1,0 +1,15 @@
+#cmd: batch describe-compute-environments
+#sort: computeEnvironmentName,type,state,status,computeResourceType
+
+.computeEnvironments[]? |
+    {
+        computeResourceType: (if .computeResources? // false then (.computeResources.type) else "None" end)
+    }
+    +
+    (
+        del(.computeResourceType) | map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+    )
+    +
+    (
+    (.Tags // [])|from_entries
+    )

@@ -1,0 +1,16 @@
+#cmd: batch describe-job-queues
+#tidy: wsh-arnchomp
+#sort: jobQueueName,state
+
+.jobQueues[]? |
+    {
+        computeEnvironment: (if .computeEnvironmentOrder[].computeEnvironment // false then (.computeEnvironmentOrder[].computeEnvironment) else "" end)
+    }
+    +
+    (
+        del(.computeEnvironment) | map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+    )
+    +
+    (
+    (.Tags // [])|from_entries
+    )

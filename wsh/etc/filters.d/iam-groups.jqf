@@ -1,0 +1,8 @@
+#cmd: iam list-groups
+#sort: GroupName,CreateDate
+#geo: global
+
+.Groups | .[] |
+    (   
+        map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+    )

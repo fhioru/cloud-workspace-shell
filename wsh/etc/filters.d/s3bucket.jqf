@@ -1,0 +1,8 @@
+#cmd: s3api list-buckets
+#sort: Name
+#geo: global
+
+.Buckets | .[]? | 
+(
+    map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+)

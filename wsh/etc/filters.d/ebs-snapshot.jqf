@@ -1,0 +1,11 @@
+#cmd: ec2 describe-snapshots --owner-ids=self
+#sort: StartTime,State
+
+.Snapshots[]? |
+    {
+        Description: (.Description // "None")
+    }
+    +
+    (
+        del(.Description) | map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+    )

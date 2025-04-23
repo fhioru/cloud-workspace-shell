@@ -1,0 +1,27 @@
+#cmd: ec2 describe-instances
+#tidy: wsh-arnchomp
+#sort: VpcId,AZ,SubnetId
+
+.Reservations[] | .Instances[] |
+(
+  map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+)
++
+(
+    (.Tags // [])|from_entries
+)
++
+(
+{
+  Name: ((.Tags[]?|select(.Key=="Name")|.Value) // "None"),
+  AZ: (.Placement|.AvailabilityZone),
+  State: (.State|.Name),
+  Platform: (.Platform // "Unknown"),
+  IamInstanceProfile: ((.IamInstanceProfile | .Arn) // "None"),
+  Virt: .VirtualizationType,
+  SGs: ([ .SecurityGroups[].GroupId ]|join(",")),
+  PublicIpAddress: (.PublicIpAddress // "None"),
+  Monitoring: (.Monitoring|.State),
+}
+)
+

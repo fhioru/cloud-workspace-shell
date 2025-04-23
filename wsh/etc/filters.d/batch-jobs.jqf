@@ -1,0 +1,14 @@
+#foreach: batch describe-job-queues | jq -r '.jobQueues | .[] | .jobQueueName'
+#cmd: batch list-jobs --job-queue ${item}
+#tidy: wsh-arnchomp
+#sort: jobName,status
+
+.[].jobSummaryList[]? |
+    {
+        createdAt: (if .createdAt? // false then (.createdAt / 1000 | todateiso8601) else "Never" end),
+        startedAt: (if .startedAt? // false then (.startedAt / 1000 | todateiso8601) else "Never" end)
+    }
+		+
+    (
+      del(.createdAt, .startedAt) | map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+    )
