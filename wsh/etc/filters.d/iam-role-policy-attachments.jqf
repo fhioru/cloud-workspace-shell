@@ -1,0 +1,10 @@
+#foreach: iam list-roles | jq -r '.Roles | .[] | .RoleName'
+#cmd: iam list-attached-role-policies --role-name ${item}
+#enrich: jq --arg item "${item}" '(.AttachedPolicies | .[] | .RoleName) = $item'
+#sort: RoleName,PolicyName
+#geo: global
+
+.[] | .AttachedPolicies | .[] |
+    (   
+        map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+    )

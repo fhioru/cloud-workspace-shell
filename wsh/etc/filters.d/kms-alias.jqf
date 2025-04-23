@@ -1,0 +1,12 @@
+#cmd: kms list-aliases
+#sort: AliasArn,AliasName
+
+.Aliases[] | (
+    map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+)
++
+(
+    (.Tags // [])|from_entries
+)
+| if .CreationDate > 0 then .CreationDate |= (. | todate) else . end
+| if .LastUpdatedDate > 0 then .LastUpdatedDate |= (. | todate) else . end

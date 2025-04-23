@@ -1,0 +1,16 @@
+#cmd: ec2 describe-vpcs
+#sort: Name,CidrBlock,VpcId
+
+.Vpcs[]? | 
+{
+        Name: ((.Tags[]?|select(.Key=="Name")|.Value) // "None"),
+        CidrBlockAssociationSet: (if .CidrBlockAssociationSet[]?.CidrBlock? // false then ([ .CidrBlockAssociationSet[]?.CidrBlock ]|join(", ")) else "None" end)
+}
++
+(
+    del(.Name, .CidrBlockAssociationSet) | map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+)
++
+(
+    (.Tags // [])|from_entries
+)

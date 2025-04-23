@@ -1,0 +1,6 @@
+#cmd: ecs list-task-definition-families
+#tidy: wsh-arnchomp
+
+.families[] | {
+    families: .
+}

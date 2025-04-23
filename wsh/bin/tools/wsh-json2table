@@ -1,0 +1,160 @@
+#!/usr/bin/env python3
+
+"""
+Simple utility script that reads JSON from STDIN and attempts to convert the
+content to a table, before output in a given format. Very useful for the walls
+of text that adding "--output=json" to AWS cli commands generates
+
+Usage:
+    json2table [options]
+    json2table ( -h | --help )
+
+Options:
+    -f <format>, --format=<format>
+                        Supported values are; plain, simple, github, grid,
+                        simple_grid, rounded_grid, heavy_grid, mixed_grid,
+                        double_grid, fancy_grid, outline, simple_outline,
+                        ounded_outline, heavy_outline, mixed_outline,
+                        double_outline, fancy_outline, pipe, orgtbl, asciidoc,
+                        jira, presto, pretty, psql, rst, mediawiki, moinmoin,
+                        youtrack, html, unsafehtml, latex, latex_raw,
+                        latex_booktabs, latex_longtable, textile, tsv,
+                        csv [default: simple]
+    -s, --sort=<sort>   A CSV string specifying the columns from the data to
+                        use in sorting the results. [default: ]
+    -n, --numbered      Number the rows [default: False]
+    -r, --records       Transpose each row into it's own record [default: False]
+    -h, --help          Show this help message and exit
+    --debug             Show more verbose logging
+
+"""
+
+import sys
+from wshutils.logger import WSHLog
+from wshutils import clean_up
+import docopt
+from tabulate import tabulate, TableFormat, _table_formats, DataRow
+import pandas as pd
+
+###############################################################################
+# CONFIG - Begin
+###############################################################################
+
+###############################################################################
+# CONFIG - End (Do Not Edit Below)
+###############################################################################
+
+_log = WSHLog(__file__)
+
+csv = {
+    "csv": TableFormat(
+        lineabove=None,
+        linebelowheader=None,
+        linebetweenrows=None,
+        linebelow=None,
+        headerrow=DataRow("", ",", ""),
+        datarow=DataRow("", ",", ""),
+        padding=0,
+        with_header_hide=["lineabove"],
+    )}
+
+_table_formats.update(csv)
+
+
+###############################################################################
+# Functions
+###############################################################################
+
+def convert_id_columns_to_string(df):
+    # Get columns containing 'ID' (case insensitive)
+    id_columns = df.columns[df.columns.str.contains('ID', case=False)]
+    _log.debug(f"Converting columns with ID to string types: {id_columns}")
+    # Convert those columns to string type
+    for col in id_columns:
+        df[col] = df[col].astype(str)
+
+    return df
+
+
+def main(options):
+    """
+    The main program function
+    """
+
+    if options['--debug'] is True:
+        import logging
+        _log.setLevel(logging.DEBUG)
+
+    for key, value in options.items():
+        _log.debug('command-line options: {}: {}'.format(key, value))
+
+    try:
+
+        # Read content from STDIN
+        df = pd.read_json(sys.stdin, convert_axes=False, convert_dates=False, dtype=str)
+
+        # Check if we have any data
+        if len(df) < 1:
+            _log.error('No data found to process. Did the query generate any data?')
+            clean_up(-1)
+
+        # Change the column type in a pandas data frame to string if the name contains the value "ID"
+        df = convert_id_columns_to_string(df)
+
+        # Attempt to sort the data using provided sort keys with fallback to
+        # actual key order in data provided
+        sort_keys = []
+        if options['--sort']:
+            _log.debug('Using custom sort keys: {}'.format(options['--sort']))
+            sort_keys = options['--sort'].strip().split(',')
+            df = df.sort_values(by=sort_keys)
+
+
+        # if record format is requested we need to transpose each row in the results into it's own table
+        if options['--records']:
+          for r in df.to_dict(orient='records'):
+            rdf = pd.DataFrame(list(r.items()), columns=['Key', 'Value']).sort_values('Key')
+            # Output DataFrame as a markdown table using tabulate library
+            print(tabulate(
+              rdf,
+              headers=["Property", "Value"],
+              tablefmt=options['--format'],
+              showindex=False,
+              disable_numparse=True
+              ))
+            print()
+        else:
+          # All other formats get passed into tabulate
+          print(tabulate(
+            df,
+            headers='keys',
+            tablefmt=options['--format'],
+            showindex=options['--numbered'],
+            disable_numparse=True
+            ))
+
+    except TypeError as e:
+        _log.error('Content does not appear to be valid JSON: {}'.format(e))
+        clean_up(-1)
+
+    except KeyError as e:
+        _log.error('Sort key provided does not exist in JSON: {}'.format(e))
+        clean_up(-1)
+
+    except AssertionError as e:
+        _log.warn(e)
+        clean_up(-1)
+
+    clean_up()
+
+
+if __name__ == "__main__":
+
+    try:
+        options = docopt.docopt(__doc__)
+        main(options)
+
+    # Handle invalid options
+    except docopt.DocoptExit as e:
+        print(e.message)
+

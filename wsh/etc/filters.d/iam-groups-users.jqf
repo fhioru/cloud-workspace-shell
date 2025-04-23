@@ -1,0 +1,10 @@
+#foreach: iam list-groups | jq -r '.Groups | .[]|.GroupName'
+#cmd: iam get-group --group-name ${item}
+#enrich: jq --arg item "${item}" '(.Users | .[] | .GroupName) = $item'
+#sort: GroupName,UserName
+#geo: global
+
+.[] | .Users | .[] |
+    (   
+        map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+    )

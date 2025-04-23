@@ -1,0 +1,7 @@
+#cmd: rds describe-db-snapshots
+#sort: DBInstanceIdentifier,SnapshotCreateTime,DBSnapshotIdentifier
+
+.DBSnapshots[]? | 
+(
+    map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+)

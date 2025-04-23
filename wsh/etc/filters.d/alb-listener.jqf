@@ -1,0 +1,20 @@
+#foreach: elbv2 describe-load-balancers | jq -r '.LoadBalancers | .[] | .LoadBalancerArn'
+#cmd: elbv2 describe-listeners --load-balancer-arn=${item}
+#enrich: jq --arg item "${item}" '(.Listeners | .[] | .LoadBalancerName) = $item'
+#sort: LoadBalancerName,Protocol
+#geo: regional
+
+.[].Listeners[]? |
+    {
+        SslPolicy: (if .SslPolicy? // false then (.SslPolicy) else "NA" end),
+        DefaultTargetGroupArn: (if .DefaultActions? // false then ([ .DefaultActions[]?.TargetGroupArn ] | join(", ")) else "NA" end),
+        Certificates: (if .Certificates? // false then ([ .Certificates[]?.CertificateArn ] | join(", ")) else "NA" end)
+    }
+    + 
+    (
+        del(.SslPolicy, .DefaultTargetGroupArn, .Certificates) | map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+    )
+    +
+    (
+    (.Tags // [])|from_entries
+    )

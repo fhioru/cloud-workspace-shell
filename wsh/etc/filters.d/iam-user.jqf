@@ -1,0 +1,8 @@
+#cmd: iam list-users
+#sort: UserName,CreateDate
+#geo: global
+
+.Users | .[] |
+    (   
+        map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+    )

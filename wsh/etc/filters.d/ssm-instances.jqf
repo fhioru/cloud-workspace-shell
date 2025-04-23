@@ -1,0 +1,8 @@
+#cmd: ssm describe-instance-information
+#sort: IPAddress
+#discard: ActivationId,IamRole,ResourceType,AssociationStatus,LastAssociationExecutionDate,SourceId,SourceType,LastSuccessfulAssociationExecutionDate
+
+.InstanceInformationList[]? |
+(
+    map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+)

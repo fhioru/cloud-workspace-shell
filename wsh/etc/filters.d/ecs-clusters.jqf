@@ -1,0 +1,11 @@
+#cmd: ecs list-clusters
+
+
+.? |
+    {
+        clusterArn: .clusterArns[]
+    }
+    +
+    (   
+        del(.clusterArn ) | map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+    )

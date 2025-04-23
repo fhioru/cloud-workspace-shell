@@ -1,0 +1,14 @@
+#cmd: ec2 describe-route-tables
+
+.RouteTables[] | 
+(
+    map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+)
++
+(
+    (.Tags // [])|from_entries
+)
++
+(
+    (.Routes[] // [])
+)

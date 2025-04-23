@@ -1,0 +1,8 @@
+#cmd: iam list-policies --scope Local
+#sort: PolicyName
+#geo: global
+
+.Policies | .[] |
+    (   
+        map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+    )
