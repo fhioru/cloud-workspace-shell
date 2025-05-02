@@ -621,6 +621,7 @@ function _aws_save_account_metadata {
             cat > "${HOME}/.wsh/config.d/${AWS_ACCOUNT_NUMBER}.wsh" <<-EOF
 AWS_ACCOUNT_NUMBER=${AWS_ACCOUNT_NUMBER}
 AWS_ACCOUNT_ALIAS=${AWS_ACCOUNT_ALIAS}
+AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
 EOF
 
         fi
