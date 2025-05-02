@@ -37,6 +37,6 @@ jobs:
           push: true
           context: .
           file: build/amd64/Dockerfile
-          tags: "ghcr.io/fhioru/wsh:${{gitea.sha}},ghcr.io/fhioru/wsh:next"
+          tags: "ghcr.io/fhioru/wsh:${{github.sha}},ghcr.io/fhioru/wsh:next"
 
 
