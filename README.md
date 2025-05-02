@@ -4,12 +4,9 @@
 
 WSH is a collection of libraries, tools and utility scripts aimed at improving the experience for
 users that need to work with TACOS (TF Automation and Collaboration Software) to develop, build and operate
-workloads on AWS (for now)
+workloads on AWS (for now).
 
-WSH is a derivative fork of [hestio/awsh](https://github.com/hest-io/awsh) and [hestio/blox](https://github.com/hest-io/blox), rebased
-(@commit: https://github.com/hest-io/blox/commit/e82664a611b7a8570b3070283e936290ac941161) to Ubuntu Linux and available for
-amd64 and (soon) arm64 based environments as a containerized image that can be used in lots of different ways;
-
+WSH can be used as;
 - As a CLI to normal AWS work
 - As a container based image from which to run CI/CD or TACOS tasks
 - As a base layer on which to build AWS applications and services
@@ -190,3 +187,8 @@ Due to the many of these tools being written in Go and it's nature of creating "
 - If you are interested in understanding more about this topic, the AWS CLI GitHub is [littered](https://github.com/aws/aws-cli/issues?q=is%3Aissue+v2++build) with issues highlighting the impact of downstream projects that build and depend on the AWS CLI
 
 
+### What is WSH's connection to AWSH and BLOX?
+
+WSH is a derivative fork of [hestio/awsh](https://github.com/hest-io/awsh) and [hestio/blox](https://github.com/hest-io/blox), rebased
+(@commit: https://github.com/hest-io/blox/commit/e82664a611b7a8570b3070283e936290ac941161) to Ubuntu Linux and available for
+amd64 and (soon) arm64 based environments as a containerized image.
