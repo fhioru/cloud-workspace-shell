@@ -222,6 +222,7 @@ ARG SW_VER_TERRASCAN="1.19.9"
 ARG SW_VER_FZF="0.56.3"
 # curl -L -s https://dl.k8s.io/release/stable.txt
 ARG SW_VER_KUBECTL="v1.31.1"
+ARG SW_VER_CURLIE="1.8.2"
 
 ENV ARCH=$GBL_ARCH
 ENV TZ=$GBL_TZ
