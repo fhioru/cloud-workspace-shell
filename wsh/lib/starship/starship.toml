@@ -7,6 +7,7 @@ $time\
 $env_var\
 ${custom.WSH_AWS_TOKEN_EXPIRY} \
 $directory\
+${custom.git_id}\
 $line_break\
 $git_branch\
 $git_commit\
@@ -48,6 +49,12 @@ unsafe_no_escape = true
 symbol = "⏱"
 command = """ /opt/wsh/lib/starship/aws-token-expiry "${AWS_SESSION_EXPIRATION}" """
 format = "[ ](bg:none fg:#F7B267)$output"
+
+[custom.git_id]
+when = "git rev-parse --git-dir 2> /dev/null"
+command = "git config user.email"
+format = " [](fg:#394260 bg:#212736)[$output](fg:#769ff0 bg:#394260)[](fg:#394260 bg:#212736)"
+# style = "bg:#494850 fg:#F2F2F2"
 
 [git_branch]
 symbol = " "
