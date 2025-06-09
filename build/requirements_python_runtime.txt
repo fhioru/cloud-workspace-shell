@@ -1,3 +1,5 @@
+# Python packages are left without pinned versions intentionally to allow uv to find the
+# latest version of each in collection that can be detected as compatible
 docopt-ng
 docutils
 dotenv
@@ -41,7 +43,7 @@ pandas
 datadog
 
 # the AWS CLIv2
-awscli @ git+https://github.com/aws/aws-cli@2.26.6
+awscli @ git+https://github.com/aws/aws-cli@2.27.31
 
 # TODO: AWS AMI Cleanup tool
 # aws-amicleaner @ git+https://github.com/DimaGolomozy/aws-amicleaner.git

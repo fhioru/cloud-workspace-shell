@@ -30,19 +30,18 @@ function __util_download {
   curl -SsL "${url}" -o "${download_path}/$(basename "${url}")"
 }
 
-
 # Archive based downloads
 __util_download "https://github.com/aquasecurity/tfsec/releases/download/v${SW_VER_TFSEC}/tfsec_${SW_VER_TFSEC}_linux_${ARCH}.tar.gz"
 __util_download "https://github.com/boxboat/fixuid/releases/download/v${SW_VER_FIXUID}/fixuid-${SW_VER_FIXUID}-linux-${ARCH}.tar.gz"
-__util_download "https://github.com/charmbracelet/glow/releases/download/v${SW_VER_GLOW}/glow_Linux_x86_64.tar.gz"
-__util_download "https://github.com/dandavison/delta/releases/download/${SW_VER_DELTA}/delta-${SW_VER_DELTA}-x86_64-unknown-linux-gnu.tar.gz"
+__util_download "https://github.com/charmbracelet/glow/releases/download/v${SW_VER_GLOW}/glow_Linux_${ARCH_FAMILY}.tar.gz"
+__util_download "https://github.com/dandavison/delta/releases/download/${SW_VER_DELTA}/delta-${SW_VER_DELTA}-${ARCH_FAMILY}-unknown-linux-gnu.tar.gz"
 __util_download "https://github.com/infracost/infracost/releases/download/${SW_VER_INFRACOST}/infracost-linux-${ARCH}.tar.gz"
 __util_download "https://github.com/junegunn/fzf/releases/download/v${SW_VER_FZF}/fzf-${SW_VER_FZF}-linux_${ARCH}.tar.gz"
-__util_download "https://github.com/starship/starship/releases/download/v${SW_VER_STARSHIP}/starship-x86_64-unknown-linux-gnu.tar.gz"
-__util_download "https://github.com/tenable/terrascan/releases/download/v${SW_VER_TERRASCAN}/terrascan_${SW_VER_TERRASCAN}_Linux_x86_64.tar.gz"
+__util_download "https://github.com/starship/starship/releases/download/v${SW_VER_STARSHIP}/starship-${ARCH_FAMILY}-unknown-linux-gnu.tar.gz"
+__util_download "https://github.com/tenable/terrascan/releases/download/v${SW_VER_TERRASCAN}/terrascan_${SW_VER_TERRASCAN}_Linux_${ARCH_FAMILY}.tar.gz"
 __util_download "https://github.com/terraform-docs/terraform-docs/releases/download/v${SW_VER_TERRAFORMDOCS}/terraform-docs-v${SW_VER_TERRAFORMDOCS}-linux-${ARCH}.tar.gz"
 __util_download "https://github.com/terraform-linters/tflint/releases/download/v${SW_VER_TFLINT}/tflint_linux_${ARCH}.zip"
-__util_download "https://github.com/tofuutils/tenv/releases/download/v${SW_VER_TENV}/tenv_v${SW_VER_TENV}_linux_x86_64.tar.gz"
+__util_download "https://github.com/tofuutils/tenv/releases/download/v${SW_VER_TENV}/tenv_v${SW_VER_TENV}_linux_${ARCH_FAMILY}.tar.gz"
 __util_download "https://releases.hashicorp.com/packer/${SW_VER_PACKER}/packer_${SW_VER_PACKER}_linux_${ARCH}.zip"
 __util_download "https://github.com/rs/curlie/releases/download/v${SW_VER_CURLIE}/curlie_${SW_VER_CURLIE}_linux_amd64.tar.gz"
 
