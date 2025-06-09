@@ -2,6 +2,7 @@
 # Global ARGs for all stages of the build
 ###############################################################################
 ARG GBL_ARCH="amd64"
+ARG GBL_ARCH_FAMILY="x86_64"
 ARG GBL_TZ="Etc/UTC"
 ARG GBL_DEBIAN_FRONTEND="noninteractive"
 ARG GBL_STAGING_ROOT="/tmp"
@@ -27,6 +28,7 @@ FROM public.ecr.aws/docker/library/golang:1.23 AS gobuild_awsssm
 
 # Renew ARGS from the global context
 ARG GBL_ARCH
+ARG GBL_ARCH_FAMILY
 ARG GBL_TZ
 ARG GBL_DEBIAN_FRONTEND
 ARG GBL_STAGING_ROOT
@@ -106,6 +108,7 @@ FROM ubuntu:24.04 AS base
 
 # Renew ARGS from the global context
 ARG GBL_ARCH
+ARG GBL_ARCH_FAMILY
 ARG GBL_TZ
 ARG GBL_DEBIAN_FRONTEND
 ARG GBL_STAGING_ROOT
@@ -123,10 +126,9 @@ ARG GBL_HTTPS_PROXY
 ARG GBL_NO_PROXY
 
 ARG WSH_OS_RUNTIME_DEPS="requirements_os_runtime.txt"
-ARG WSH_OS_BUILD_DEPS="requirements_os_build.txt"
-ARG WSH_PYTHON_BUILD_DEPS="requirements_python_build.txt"
 
 ENV ARCH=$GBL_ARCH
+ENV ARCH_FAMILY=$GBL_ARCH_FAMILY
 ENV TZ=$GBL_TZ
 ENV DEBIAN_FRONTEND=$GBL_DEBIAN_FRONTEND
 ENV WSH_ROOT=$GBL_WSH_ROOT
@@ -155,15 +157,15 @@ apt-get update && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
-echo "Git is at $(which git)"
-
 # PEP-668 (https://peps.python.org/pep-0668/) is not required in this case as the entire OS is
 # our application and we intentionally want to modify the default system packages if needed by
 # an installed software artifact
 [ -e "/usr/lib/python3.12/EXTERNALLY-MANAGED" ] && rm -fv "/usr/lib/python3.12/EXTERNALLY-MANAGED"
 
 # Install our Python package manager
-python3 -m pip --no-cache-dir --disable-pip-version-check install uv
+wget -q https://github.com/astral-sh/uv/releases/latest/download/uv-${GBL_ARCH_FAMILY}-unknown-linux-gnu.tar.gz -O "${GBL_STAGING_ROOT}/uv-${GBL_ARCH_FAMILY}-unknown-linux-gnu.tar.gz" && \
+  tar -zxvf "${GBL_STAGING_ROOT}/uv-${GBL_ARCH_FAMILY}-unknown-linux-gnu.tar.gz" -C /usr/local/bin --strip-components 1 && \
+  uv generate-shell-completion bash > /etc/bash_completion.d/uv
 
 # Update the default Ubuntu user and group
 groupmod --new-name ${WSH_GROUP} ubuntu
@@ -185,6 +187,7 @@ FROM base AS runtime
 
 # Renew ARGS from the global context
 ARG GBL_ARCH
+ARG GBL_ARCH_FAMILY
 ARG GBL_TZ
 ARG GBL_DEBIAN_FRONTEND
 ARG GBL_STAGING_ROOT
@@ -222,8 +225,10 @@ ARG SW_VER_TERRASCAN="1.19.9"
 ARG SW_VER_FZF="0.56.3"
 # curl -L -s https://dl.k8s.io/release/stable.txt
 ARG SW_VER_KUBECTL="v1.31.1"
+ARG SW_VER_CURLIE="1.8.2"
 
 ENV ARCH=$GBL_ARCH
+ENV ARCH_FAMILY=$GBL_ARCH_FAMILY
 ENV TZ=$GBL_TZ
 ENV DEBIAN_FRONTEND=$GBL_DEBIAN_FRONTEND
 ENV WSH_ROOT=$GBL_WSH_ROOT
@@ -326,6 +331,7 @@ ARG GBL_HTTPS_PROXY
 ARG GBL_NO_PROXY
 
 ENV ARCH=$GBL_ARCH
+ENV ARCH_FAMILY=$GBL_ARCH_FAMILY
 ENV TZ=$GBL_TZ
 ENV DEBIAN_FRONTEND=$GBL_DEBIAN_FRONTEND
 ENV WSH_ROOT=$GBL_WSH_ROOT
@@ -351,14 +357,28 @@ ENV DEFAULT_TERRAFORM_VERSION=${SW_VER_TERRAFORM}
 ENV DEFAULT_OPENTOFU_VERSION=${SW_VER_OPENTOFU}
 
 # Infracost token injection
-ENV INFRACOST_API_KEY ${INFRACOST_API_KEY}
+ENV INFRACOST_API_KEY=${INFRACOST_API_KEY}
 
 # SSO Tool: default to looking inside the .wsh path
 ENV AWS_SSO_CONFIG="${WSH_USER_HOME}/.wsh/aws-sso-config.yml"
 
 # FZF: Preview file content using bat (https://github.com/sharkdp/bat)
-ENV FZF_CTRL_T_OPTS="--height 40% --preview 'bat -n --color=always {}'"
-ENV FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border"
+ENV FZF_CTRL_T_OPTS="\
+  --height 40%\
+  --walker-skip .git,node_modules,target\
+  --preview 'bat --color=always\
+  --style=numbers\
+  --line-range=:500 {}'\
+"
+ENV FZF_DEFAULT_OPTS="\
+  --height 40% --tmux bottom,40% --layout reverse --border top\
+  --color=fg:#d0d0d0,fg+:#d0d0d0,bg:#121212,bg+:#262626\
+  --color=hl:#5f87af,hl+:#5fd7ff,info:#afaf87,marker:#87ff00\
+  --color=prompt:#d7005f,spinner:#af5fff,pointer:#af5fff,header:#87afaf\
+  --color=border:#262626,label:#aeaeae,query:#d9d9d9\
+  --border="rounded" --border-label='' --preview-window='border-rounded' --prompt='> '\
+  --marker='>' --pointer='◆' --separator='─' --scrollbar='│'\
+"
 
 # Add all of our own utilities
 COPY --chown=${GBL_PUID}:${GBL_PGID} wsh/ ${GBL_WSH_ROOT}
