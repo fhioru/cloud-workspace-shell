@@ -1,0 +1,12 @@
+#foreach: route53resolver list-resolver-endpoints | jq -r '.ResolverEndpoints[] | .Id'
+#cmd: route53resolver list-resolver-endpoint-ip-addresses --resolver-endpoint-id "${item}"
+#enrich: jq --arg item "${item}" '.IpAddresses |= map(.ResolverEndpoint = $item)' | jq '.IpAddresses[]'
+#sort: ResolverEndpoint,Ip
+
+.[] | (
+ map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+)
++
+(
+ (.tags // {})
+)

@@ -20,6 +20,7 @@ jq
 krb5-config
 krb5-user
 less
+locales
 nano
 openssh-client
 pcre2-utils
