@@ -1,0 +1,15 @@
+#cmd: route53resolver list-resolver-rules
+#sort: DomainName,RuleType,Name
+#discard: StatusMessage,Arn,CreatorRequestId
+
+.ResolverRules[] | (
+  map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+)
++
+(
+  { TargetIps: (if .TargetIps? then ([.TargetIps[] | "\(.Ip):\(.Port)"]) | join(", ") else "N/A" end) }
+)
++
+(
+ (.tags // {})
+)

@@ -1,0 +1,13 @@
+#foreach: route53 list-hosted-zones | jq -r '.HostedZones[] | .Id | sub("\/hostedzone\/"; "")'
+#cmd: route53 list-resource-record-sets --hosted-zone-id "${item}"
+#enrich: jq --arg item "${item}" '(.HostedZoneId) = $item'
+#sort: Name,Type
+
+.ResourceRecordSets[] | {
+  Name: .Name,
+  Type: .Type,
+  TTL: (.TTL // "N/A"),
+  AliasTarget: (if .AliasTarget? then (.AliasTarget | .DNSName) else null end),
+  ResourceRecords: (if .ResourceRecords? then ([.ResourceRecords[].Value]) | join(", ") else null end),
+  HostedZoneId: .HostedZoneId
+} | del(.[] | select(. == null))

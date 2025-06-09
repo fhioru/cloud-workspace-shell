@@ -1,0 +1,11 @@
+#cmd: route53resolver list-resolver-rule-associations
+#sort: Name,VPCId,ResolverRuleId
+#discard: StatusMessage
+
+.ResolverRuleAssociations[] | (
+  map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+)
++
+(
+ (.tags // {})
+)

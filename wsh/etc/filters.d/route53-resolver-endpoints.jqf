@@ -1,0 +1,11 @@
+#cmd: route53resolver list-resolver-endpoints
+#sort: Name,Direction,Status
+#discard: Arn,StatusMessage
+
+.ResolverEndpoints[] | (
+   map_values(del(select((.|iterables) ))) | del(.[] | select(. == null))
+)
++
+(
+   (.tags // {})
+)
