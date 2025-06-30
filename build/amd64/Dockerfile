@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 ###############################################################################
 # Global ARGs for all stages of the build
 ###############################################################################
@@ -211,7 +212,7 @@ ARG GBL_HTTP_PROXY
 ARG GBL_HTTPS_PROXY
 ARG GBL_NO_PROXY
 
-ARG WSH_PYTHON_RUNTIME_DEPS="requirements_python_runtime.txt"
+ARG WSH_PYTHON_RUNTIME_DEPS="pyproject.toml"
 
 ARG SW_VER_FIXUID="0.6.0"
 ARG SW_VER_STARSHIP="1.21.1"
@@ -272,7 +273,7 @@ set -eux
 [ -e "/usr/lib/python3.12/EXTERNALLY-MANAGED" ] && rm -fv "/usr/lib/python3.12/EXTERNALLY-MANAGED"
 
 # Python dependencies
-uv --no-cache pip install --system -r "${GBL_STAGING_ROOT}/${WSH_PYTHON_RUNTIME_DEPS}"
+uv --no-cache pip install --system --requirements "${GBL_STAGING_ROOT}/${WSH_PYTHON_RUNTIME_DEPS}"
 uv cache clean
 
 # BASH completion for the awscli
