@@ -22,6 +22,22 @@ STAGING_ROOT="$1"
 [ -d "${STAGING_ROOT}/stage" ] || mkdir -p "${STAGING_ROOT}/stage"
 [ -d "${STAGING_ROOT}/install" ] || mkdir -p "${STAGING_ROOT}/install"
 
+# Return the latest tagged commit for the given Git repo URL
+function __get_latest_tag_for_repo() {
+    local pattern_repo_url="$1"
+    # Retrieve list of tags, extract tag names, sort them, and get the latest one
+    latest_tag=$(git ls-remote --tags "${pattern_repo_url}" \
+        | awk '{print $2}' \
+        | awk -F '/' '{print $3}' \
+        | grep -v '{}' \
+        | grep -v '^v' \
+        | sort -V \
+        | tail -1)
+
+    echo "$latest_tag"
+}
+
+# Download the artifact at the specificed URL to an optional path
 function __util_download {
   local url="$1"
   local download_path="${2:-$STAGING_ROOT/install}"

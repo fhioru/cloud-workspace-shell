@@ -1,0 +1,37 @@
+[project]
+name = "cloud-workspace-shell"
+version = "0.1.1"
+requires-python = ">=3.10"
+dependencies = [
+    "airiam>=0.1.83",
+    "ansible>=11.7.0",
+    "anthropic>=0.55.0",
+    "awscli",
+    "boto3>=1.38.32",
+    "click>=8.2.1",
+    "csvkit>=2.1.0",
+    "datadog>=0.51.0",
+    "docopt-ng>=0.9.0",
+    "docutils>=0.19",
+    "dotenv>=0.9.9",
+    "future>=1.0.0",
+    "git-remote-codecommit>=1.17",
+    "invoke>=2.2.0",
+    "jinja2>=3.1.6",
+    "jinja2-cli>=0.8.2",
+    "json2html>=1.3.0",
+    "openai>=1.84.0",
+    "pandas>=2.3.0",
+    "pre-commit>=4.2.0",
+    "pwgen>=0.8.2.post0",
+    "pydantic>=2.11.5",
+    "pyyaml>=6.0.2",
+    "rainbow-logging-handler>=2.2.2",
+    "rich>=14.0.0",
+    "tabulate[widechars]>=0.9.0",
+    "termcolor>=1.1.0",
+    "unittest-xml-reporting>=3.2.0",
+]
+
+[tool.uv.sources]
+awscli = { git = "https://github.com/aws/aws-cli", rev = "2.27.31" }
