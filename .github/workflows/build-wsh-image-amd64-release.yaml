@@ -1,5 +1,5 @@
-name: Build AMD64 image layers
-run-name: ${{ github.actor }} building AMD64 image
+name: Build container image layers
+run-name: ${{ github.actor }} building container images
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - 'v*'
 
 jobs:
-  Build-AMD64-image:
+  Build-Container-Images:
     runs-on: ubuntu-latest
     steps:
 
@@ -40,5 +40,5 @@ jobs:
           context: .
           file: build/amd64/Dockerfile
           tags: "ghcr.io/fhioru/wsh:${{github.sha}},ghcr.io/fhioru/wsh:latest"
-
-
+        env:
+          TENV_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
