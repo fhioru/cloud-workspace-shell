@@ -192,3 +192,23 @@ Due to the many of these tools being written in Go and it's nature of creating "
 WSH is a derivative fork of [hestio/awsh](https://github.com/hest-io/awsh) and [hestio/blox](https://github.com/hest-io/blox), rebased
 (@commit: https://github.com/hest-io/blox/commit/e82664a611b7a8570b3070283e936290ac941161) to Ubuntu Linux and available for
 amd64 and (soon) arm64 based environments as a containerized image.
+
+
+### How I get started  with contributing?
+
+- Get a copy of `uv` for your operating system from [https://docs.astral.sh/uv/](https://docs.astral.sh/uv/)
+- Clone this repo
+
+```
+git clone https://github.com/fhioru/cloud-workspace-shell.git
+cd cloud-workspace-shell
+```
+
+- Install the Python dependencies
+
+```
+uv venv --no-project .venv
+uv pip install --requirements build/pyproject.toml
+```
+
+- Open your favourite IDE and set it's Python path to the Virtualenv you just created
