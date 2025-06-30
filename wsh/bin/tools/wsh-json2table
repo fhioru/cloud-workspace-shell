@@ -89,6 +89,8 @@ def main(options):
 
         # Change the types in the pandas data frame to string
         df = df.astype(str)
+        # Replace "nan" values with empty strings to cleanup output
+        df = df.replace('nan', '')
 
         # Attempt to sort the data using provided sort keys with fallback to
         # actual key order in data provided
