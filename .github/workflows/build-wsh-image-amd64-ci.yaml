@@ -1,10 +1,11 @@
-name: Build container image layers for release candidates
-run-name: ${{ github.actor }} building RC images
+name: Build container image layers for pull requests candidates
+run-name: ${{ github.actor }} building PR images
 
 on:
-  push:
+  pull_request:
     branches:
-      - 'next'
+      - next
+      - master
 
 jobs:
   Build-Container-Images:
@@ -34,9 +35,11 @@ jobs:
         with:
           # platforms: linux/amd64,linux/arm64
           platforms: linux/amd64
-          push: true
+          push: false
           context: .
           file: build/amd64/Dockerfile
-          tags: "ghcr.io/fhioru/wsh:${{github.sha}},ghcr.io/fhioru/wsh:next"
+          tags: "ghcr.io/fhioru/wsh:${{github.sha}}"
         env:
           TENV_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+

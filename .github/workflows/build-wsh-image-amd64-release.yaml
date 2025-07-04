@@ -1,5 +1,5 @@
 name: Build container image layers
-run-name: ${{ github.actor }} building container images
+run-name: ${{ github.actor }} building Release images
 
 on:
   push:
