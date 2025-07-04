@@ -59,7 +59,8 @@ __util_download "https://github.com/terraform-docs/terraform-docs/releases/downl
 __util_download "https://github.com/terraform-linters/tflint/releases/download/v${SW_VER_TFLINT}/tflint_linux_${ARCH}.zip"
 __util_download "https://github.com/tofuutils/tenv/releases/download/v${SW_VER_TENV}/tenv_v${SW_VER_TENV}_linux_${ARCH_FAMILY}.tar.gz"
 __util_download "https://releases.hashicorp.com/packer/${SW_VER_PACKER}/packer_${SW_VER_PACKER}_linux_${ARCH}.zip"
-__util_download "https://github.com/rs/curlie/releases/download/v${SW_VER_CURLIE}/curlie_${SW_VER_CURLIE}_linux_amd64.tar.gz"
+__util_download "https://github.com/rs/curlie/releases/download/v${SW_VER_CURLIE}/curlie_${SW_VER_CURLIE}_linux_${ARCH}.tar.gz"
+__util_download "https://github.com/opencode-ai/opencode/releases/download/v${SW_VER_OPENCODE}/opencode-linux-${ARCH_FAMILY}.tar.gz"
 
 # Binary only downloads
 __util_download "https://github.com/snyk/driftctl/releases/download/${SW_VER_DRIFTCTL}/driftctl_linux_${ARCH}" "${STAGING_ROOT}/stage"
