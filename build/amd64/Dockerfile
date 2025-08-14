@@ -235,6 +235,8 @@ ARG SW_VER_FZF="0.56.3"
 ARG SW_VER_KUBECTL="v1.31.1"
 ARG SW_VER_CURLIE="1.8.2"
 ARG SW_VER_OPENCODE="0.0.55"
+ARG SW_VER_K9S="0.50.9"
+ARG SW_VER_K8S_PLUGIN_KREW="0.4.5"
 
 ENV ARCH=$GBL_ARCH
 ENV ARCH_FAMILY=$GBL_ARCH_FAMILY
@@ -254,6 +256,7 @@ ENV https_proxy=${HTTPS_PROXY}
 ENV no_proxy=${NO_PROXY}
 ENV NO_PROXY=${NO_PROXY}
 ENV TENV_ROOT=${GBL_WSH_USER_HOME}/.tenv
+ENV KREW_ROOT=${GBL_WSH_USER_HOME}/.krew
 
 # Copy in requirement and helper files
 COPY build/${WSH_PYTHON_RUNTIME_DEPS} build/${ARCH}/build-helper-3rdparty-installer.sh ${GBL_STAGING_ROOT}/
@@ -313,6 +316,26 @@ tenv tofu install ${SW_VER_OPENTOFU}
 tenv tg install ${SW_VER_TERRAGRUNT}
 tenv completion bash > /etc/bash_completion.d/tenv.completion.bash
 
+# Configuration of kubectl and plugins, starting with the Krew plugin manager
+export PATH=${PATH}:${KREW_ROOT}/bin
+
+"${GBL_STAGING_ROOT}/installers/krew-linux_${GBL_ARCH}" install krew
+
+kubectl krew install oidc-login
+kubectl krew install access-matrix
+kubectl krew install ai
+kubectl krew install aws-auth
+kubectl krew install blame
+kubectl krew install ctx
+kubectl krew install ns
+
+kubectl completion bash > /etc/bash_completion.d/kubectl.completion.bash
+kubectl oidc-login completion bash > /etc/bash_completion.d/kubectl-oidc-login.completion.bash
+
+# Cleanup
+echo "Cleaning up ${GBL_STAGING_ROOT}/installers"
+rm -Rf "${GBL_STAGING_ROOT}/installers"
+
 EOF
 
 
@@ -359,7 +382,7 @@ ENV NO_PROXY=${NO_PROXY}
 
 
 ENV PYTHONPATH=${WSH_ROOT}/lib/python
-ENV PATH="${WSH_ROOT}/bin:${WSH_ROOT}/bin/tools:${PATH}:${WSH_USER_HOME}/bin:${WSH_USER_HOME}/.tfenv/bin"
+ENV PATH="${WSH_ROOT}/bin:${WSH_ROOT}/bin/tools:${PATH}:${WSH_USER_HOME}/bin:${TENV_ROOT}/bin:${KREW_ROOT}/bin"
 ENV PATCHED_FONT_IN_USE=no
 ENV WSH_VERSION="${GBL_WSH_BUILD_VERSION}"
 
@@ -402,7 +425,8 @@ touch "${GBL_WSH_USER_HOME}/.hushlogin"
 # WSH and AWS CLI paths
 mkdir -p \
   ${GBL_WSH_USER_HOME}/.wsh/log \
-  ${GBL_WSH_USER_HOME}/.aws
+  ${GBL_WSH_USER_HOME}/.aws \
+  ${GBL_WSH_USER_HOME}/.kube
 
 # Link the JQ module library
 ln -s ${GBL_WSH_ROOT}/lib/jq ${GBL_WSH_USER_HOME}/.jq

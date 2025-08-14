@@ -174,6 +174,8 @@ improve the user experience. These include;
 - Tflint [https://github.com/terraform-linters](https://github.com/terraform-linters)
 - Tfsec [https://github.com/aquasecurity/tfsec](https://github.com/aquasecurity/tfsec)
 - Tenv [https://github.com/tofuutils/tenv](https://github.com/tofuutils/tenv)
+- Kubectl [https://kubernetes.io/docs/reference/kubectl/](https://kubernetes.io/docs/reference/kubectl/)
+- Krew [https://github.com/kubernetes-sigs/krew](https://github.com/kubernetes-sigs/krew)
 
 Due to the many of these tools being written in Go and it's nature of creating "batteries included" artifacts that bundle all of the dependencies into standalone binaries this adds a whopping 1.5GB to the image size!
 
