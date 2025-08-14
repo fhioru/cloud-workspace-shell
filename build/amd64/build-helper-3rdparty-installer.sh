@@ -21,6 +21,7 @@ STAGING_ROOT="$1"
 
 [ -d "${STAGING_ROOT}/stage" ] || mkdir -p "${STAGING_ROOT}/stage"
 [ -d "${STAGING_ROOT}/install" ] || mkdir -p "${STAGING_ROOT}/install"
+[ -d "${STAGING_ROOT}/installers" ] || mkdir -p "${STAGING_ROOT}/installers"
 
 # Return the latest tagged commit for the given Git repo URL
 function __get_latest_tag_for_repo() {
@@ -67,21 +68,32 @@ __util_download "https://github.com/snyk/driftctl/releases/download/${SW_VER_DRI
 __util_download "https://github.com/synfinatic/aws-sso-cli/releases/download/v${SW_VER_SSOTOOL}/aws-sso-${SW_VER_SSOTOOL}-linux-${ARCH}" "${STAGING_ROOT}/stage"
 # Add Kubernetes CLI tooling
 __util_download "https://dl.k8s.io/release/${SW_VER_KUBECTL}/bin/linux/${ARCH}/kubectl" "${STAGING_ROOT}/stage"
+__util_download "https://github.com/derailed/k9s/releases/download/v${SW_VER_K9S}/k9s_Linux_${ARCH}.tar.gz"
+__util_download "https://github.com/kubernetes-sigs/krew/releases/download/v${SW_VER_K8S_PLUGIN_KREW}/krew-linux_${ARCH}.tar.gz" "${STAGING_ROOT}/installers"
 
-# The following tools are now managed by TENV and will be removed in a furutre version
-# __util_download "https://github.com/opentofu/opentofu/releases/download/v${SW_VER_OPENTOFU}/tofu_${SW_VER_OPENTOFU}_linux_${ARCH}.zip"
-# __util_download "https://releases.hashicorp.com/terraform/${SW_VER_TERRAFORM}/terraform_${SW_VER_TERRAFORM}_linux_${ARCH}.zip"
-# __util_download "https://github.com/gruntwork-io/terragrunt/releases/download/v${SW_VER_TERRAGRUNT}/terragrunt_linux_${ARCH}" "${STAGING_ROOT}/stage"
+# Ensure that filename globbing patterns that don't match any filenames are simply expanded to nothing rather than remaining unexpanded.
+shopt -s nullglob
 
+# Extract installers
+for archive in "${STAGING_ROOT}"/installers/*.tar.gz; do
+  tar -xvf "$archive" -C "${STAGING_ROOT}/installers/"
+done
+
+# Extract zip installers, handling case where no files match the pattern
+for archive in "${STAGING_ROOT}"/installers/*.zip; do
+  unzip -o "$archive" -d "${STAGING_ROOT}/installers/"
+done
 
 # Extract archives
-for archive in ${STAGING_ROOT}/install/*.gz; do
+for archive in "${STAGING_ROOT}"/install/*.tar.gz; do
   tar -xvf "$archive" -C "${STAGING_ROOT}/stage/"
 done
 
-for archive in ${STAGING_ROOT}/install/*.zip; do
+for archive in "${STAGING_ROOT}"/install/*.zip; do
   unzip -o "$archive" -d "${STAGING_ROOT}/stage/"
 done
+
+shopt -u nullglob
 
 # Find and relocate executables
 find "${STAGING_ROOT}/stage/" -type f | while read entry; do
