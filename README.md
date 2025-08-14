@@ -20,7 +20,7 @@ WSH can be used as;
 If you just want to try it out and have a look around it's as simple as running the Docker container.
 
 ```bash
-docker run -it --rm fioru/wsh
+docker run -it --rm ghcr.io/fhioru/wsh:latest
 ```
 
 ### Add your own preferences, credentials and identity
@@ -57,7 +57,7 @@ docker run \
     -e "https_proxy=${https_proxy}" \
     -e "no_proxy=${no_proxy}" \
     -e "KRB5CCNAME=${KRB5CCNAME}" \
-    fioru/wsh
+    ghcr.io/fhioru/wsh:latest
 ```
 
 ### Regular use
@@ -74,7 +74,7 @@ Create the `wsh` wrapper that defaults to using the latest image, ensuring that 
 PUID=$(id -u)
 PGID=$(id -g)
 
-_DEFAULT_IMAGE='fioru/wsh'
+_DEFAULT_IMAGE='ghcr.io/fhioru/wsh:latest'
 WSH_INSTANCE_IMAGE="${1:-$_DEFAULT_IMAGE}"
 WSH_INSTANCE_TMP="$(mktemp -d)"
 
@@ -136,14 +136,13 @@ wsh
 If you want to run a specific version or tag, just pass it when starting WSH
 
 ```bash
-wsh fioru/wsh:1.4
+wsh ghcr.io/fhioru/wsh:v1.4.0
 ```
 
 
 ## Documentation
 
-
-Full documentation is available at [https://fhioru.github.io/]([https://fhioru.github.io/])
+*In the works*
 
 
 
