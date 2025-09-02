@@ -112,7 +112,7 @@ function _aws_select_sso_account {
     # Trigger an initial login to create the listing of accounts and available roles
     aws-sso list AccountIdPad AccountAlias RoleName Arn Expires > /dev/null
 
-    local selected_aws_arn=$(aws-sso list --sort="AccountAlias" Id AccountAlias AccountIdPad RoleName Arn Expires | tail -n +5 |fzf --bind 'enter:become(echo {9})+accept')
+    local selected_aws_arn=$(aws-sso list --sort="AccountAlias" Id AccountAlias AccountIdPad RoleName Arn Expires | tail -n +5 |fzf --delimiter '|' --bind 'enter:become(echo {5})+accept')
 
     local sso_buffer=$(mktemp ${WSH_ROOT}/tmp/awsssoXXXX)
     /usr/local/bin/aws-sso process --arn="${selected_aws_arn}" 1>"${sso_buffer}"
