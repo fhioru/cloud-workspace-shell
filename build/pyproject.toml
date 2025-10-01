@@ -34,4 +34,4 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-awscli = { git = "https://github.com/aws/aws-cli", rev = "2.27.31" }
+awscli = { git = "https://github.com/aws/aws-cli", rev = "2.31.6" }

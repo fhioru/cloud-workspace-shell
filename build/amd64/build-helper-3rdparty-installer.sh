@@ -70,6 +70,7 @@ __util_download "https://github.com/synfinatic/aws-sso-cli/releases/download/v${
 __util_download "https://dl.k8s.io/release/${SW_VER_KUBECTL}/bin/linux/${ARCH}/kubectl" "${STAGING_ROOT}/stage"
 __util_download "https://github.com/derailed/k9s/releases/download/v${SW_VER_K9S}/k9s_Linux_${ARCH}.tar.gz"
 __util_download "https://github.com/kubernetes-sigs/krew/releases/download/v${SW_VER_K8S_PLUGIN_KREW}/krew-linux_${ARCH}.tar.gz" "${STAGING_ROOT}/installers"
+__util_download "https://get.helm.sh/helm-v${SW_VER_HELM}-linux-${ARCH}.tar.gz"
 
 # Ensure that filename globbing patterns that don't match any filenames are simply expanded to nothing rather than remaining unexpanded.
 shopt -s nullglob
