@@ -161,6 +161,10 @@ apt-get update && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
+# Fuse setup for SSHFS support
+echo "user_allow_other" | tee -a /etc/fuse.conf
+echo "mount_max = 1000" | tee -a /etc/fuse.conf
+
 # Ensure the default locale is generated
 locale-gen "${GBL_LOCALE}"
 
