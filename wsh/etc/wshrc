@@ -12,7 +12,7 @@ CONST_SCRIPT_PATH=${0}
 CONST_SCRIPT_CALLER="${BASH_SOURCE[0]}"
 
 # Default for WSH_ROOT if unset
-: "${WSH_ROOT:='/opt/wsh'}"
+: "${WSH_ROOT:=/opt/wsh}"
 
 
 # Defining True and False to improve readability in scripts
