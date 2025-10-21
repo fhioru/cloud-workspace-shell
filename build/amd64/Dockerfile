@@ -161,6 +161,10 @@ apt-get update && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
+# Fuse setup for SSHFS support
+echo "user_allow_other" | tee -a /etc/fuse.conf
+echo "mount_max = 1000" | tee -a /etc/fuse.conf
+
 # Ensure the default locale is generated
 locale-gen "${GBL_LOCALE}"
 
@@ -323,16 +327,28 @@ export PATH=${PATH}:${KREW_ROOT}/bin
 
 "${GBL_STAGING_ROOT}/installers/krew-linux_${GBL_ARCH}" install krew
 
-kubectl krew install oidc-login
 kubectl krew install access-matrix
 kubectl krew install ai
 kubectl krew install aws-auth
 kubectl krew install blame
+kubectl krew install cert-manager
+kubectl krew install cost
+kubectl krew install ctr
 kubectl krew install ctx
+kubectl krew install ip-check
+kubectl krew install kor
+kubectl krew install kubetail
+kubectl krew install neat
 kubectl krew install ns
+kubectl krew install oidc-login
+kubectl krew install popeye
+kubectl krew install ray
+kubectl krew install rbac-tool
 
 kubectl completion bash > /etc/bash_completion.d/kubectl.completion.bash
 kubectl oidc-login completion bash > /etc/bash_completion.d/kubectl-oidc-login.completion.bash
+kubectl ai completion bash > /etc/bash_completion.d/kubectl-ai.completion.bash
+kubectl aws-auth completion bash > /etc/bash_completion.d/kubectl-aws-auth.completion.bash
 
 # Cleanup
 echo "Cleaning up ${GBL_STAGING_ROOT}/installers"

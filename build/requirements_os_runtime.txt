@@ -38,6 +38,7 @@ python3-requests-oauthlib
 python3-ruamel.yaml
 python3-ruamel.yaml.clib
 ripgrep
+sshfs
 sshpass
 sudo
 tar
