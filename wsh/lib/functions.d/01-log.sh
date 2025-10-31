@@ -8,7 +8,7 @@ function _log {
     : "${p_line_number:=0}"
     : "${DEFAULT_OUT:=/dev/stderr}"
 
-    timestamp="$(date +'%Y-%m-%dT%H:%M:%S%z')"
+    timestamp="$(date -Is)"
     log_file_msg=$(printf "[%s]: %-s:%04d : %s" "$timestamp" "$CONST_SCRIPT_NAME" "$p_line_number" "${p_message}")
     log_tty_msg=$(printf "[%s]: %03d : INFO  %s" "$timestamp" "$p_line_number" "$p_message")
 
@@ -37,7 +37,7 @@ function _log_event {
     : "${p_severity:='INFO'}"
     : "${EVENT_LOG:=/dev/stderr}"
 
-    timestamp="$(date +'%Y-%m-%dT%H:%M:%S%z')"
+    timestamp="$(date -Is)"
     log_file_msg=$(printf "[%s]: %03d : %-7.7s : %s" "$timestamp" "$p_line_number" "${p_severity}" "${p_message}")
     log_tty_msg=$(printf "[%s]: %03d : %-7.7s : %s" "$timestamp" "$p_line_number" "${p_severity}" "${p_message}")
 
@@ -54,7 +54,10 @@ function _log_event {
 # A helper function that can be used to print timestamps to strings printed to
 # output streams aimed at mimicking the 'ts' utility if it's not present
 function _log_ts {
-    cat | while IFS= read -r line; do printf '%s %s %s\n' "$(date +'%Y-%m-%dT%H:%M:%S%z')" "$line" "$(echo -e ${__no_color})"; done
+    local no_color="${__no_color:-}"
+    while IFS= read -r line; do
+        printf '%s %s%s\n' "$(date -Is)" "$line" "$no_color"
+    done
 }
 
 
@@ -73,7 +76,7 @@ function _log_exit_with_error {
   : "${p_line_number:=0}"
   : "${DEFAULT_OUT:=/dev/stderr}"
 
-  timestamp="$(date +'%Y-%m-%dT%H:%M:%S%z')"
+  timestamp="$(date -Is)"
   log_file_msg=$(printf "[%s]: %-s:%04d : %s" "$timestamp" "$CONST_SCRIPT_NAME" "$p_line_number" "${p_message}")
   log_tty_msg=$(printf "[%s]: %03d : %s" "$timestamp" "$p_line_number" "${red}ERROR ${p_message}${reset}")
 
