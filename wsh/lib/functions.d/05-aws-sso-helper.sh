@@ -59,7 +59,7 @@ function _aws_get_sso_account_credentials {
 
 function _aws_get_sso_accounts_data {
 
-  if [ $# -lt 1 ]; then
+  if [ -z "${AWS_DEFAULT_REGION:-}" ]; then
       _screen_warn "AWS_DEFAULT_REGION not set. Defaulting to us-east-1"
   fi
 
@@ -91,7 +91,7 @@ function _aws_get_sso_accounts_data {
 
 function _aws_list_sso_accounts {
 
-  if [ $# -lt 1 ]; then
+  if [ -z "${AWS_DEFAULT_REGION:-}" ]; then
       _screen_warn "AWS_DEFAULT_REGION not set. Defaulting to us-east-1"
   fi
 
