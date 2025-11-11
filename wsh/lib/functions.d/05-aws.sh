@@ -53,7 +53,10 @@ function _aws_load_sso_credentials {
 
     _screen_print_header_l2 "Paste SSO credentials below and then use CTRL+D"
     cat > "${AWS_CONFIG_FILE}" | sed -e 's/^[ \t]*export[ \t]*//g'
-    echo 'AWS_DEFAULT_REGION="us-east-1"' >> "${AWS_CONFIG_FILE}"
+    # Only set region if not already set
+    if [[ -z "${AWS_DEFAULT_REGION}" ]]; then
+        echo 'AWS_DEFAULT_REGION="us-east-1"' >> "${AWS_CONFIG_FILE}"
+    fi
 
     source "${AWS_CONFIG_FILE}"
 
@@ -102,7 +105,10 @@ function _aws_load_basic_credentials {
     _config_ini_parser "${1}"
     cfg.section.default
 
-    AWS_DEFAULT_REGION="${region}"
+    # Only set region if not already set; if config region is empty, default to us-east-1
+    if [[ -z "${AWS_DEFAULT_REGION}" ]]; then
+        AWS_DEFAULT_REGION="${region:-us-east-1}"
+    fi
     AWS_ACCESS_KEY_ID="${aws_access_key_id}"
     AWS_SECRET_ACCESS_KEY="${aws_secret_access_key}"
 
@@ -116,8 +122,10 @@ function _aws_load_credentials_from_json {
     _aws_logout
     AWS_CONFIG_FILE=$(mktemp ${WSH_ROOT}/tmp/awsssoXXXX)
 
-    # Set an initial region
-    echo 'AWS_DEFAULT_REGION="us-east-1"' > "${AWS_CONFIG_FILE}"
+    # Set an initial region only if not already set
+    if [[ -z "${AWS_DEFAULT_REGION}" ]]; then
+        echo 'AWS_DEFAULT_REGION="us-east-1"' > "${AWS_CONFIG_FILE}"
+    fi
 
     jq '.Credentials + .roleCredentials |
           walk(if type=="object" then with_entries(.key|=ascii_downcase) else . end) |
@@ -172,8 +180,10 @@ function _aws_load_credentials_from_sso {
     _aws_logout
     AWS_CONFIG_FILE=$(mktemp ${WSH_ROOT}/tmp/awsssoXXXX)
 
-    # Set an initial region
-    echo 'AWS_DEFAULT_REGION="us-east-1"' > "${AWS_CONFIG_FILE}"
+    # Set an initial region only if not already set
+    if [[ -z "${AWS_DEFAULT_REGION}" ]]; then
+        echo 'AWS_DEFAULT_REGION="us-east-1"' > "${AWS_CONFIG_FILE}"
+    fi
 
     jq 'walk(if type=="object" then with_entries(.key|=ascii_downcase) else . end) |
           {
@@ -231,7 +241,10 @@ function _aws_load_credentials_from_instance {
     local instance_credentials_url="http://169.254.169.254/latest/meta-data/identity-credentials/ec2/security-credentials/ec2-instance"
 
     AWS_ID_NAME="instance-profile/${instance_profile_id}"
-    AWS_DEFAULT_REGION="${instance_region}"
+    # Only set region if not already set; use instance region or default to us-east-1
+    if [[ -z "${AWS_DEFAULT_REGION}" ]]; then
+        AWS_DEFAULT_REGION="${instance_region:-us-east-1}"
+    fi
 
     export AWS_ID_NAME AWS_DEFAULT_REGION
 
@@ -278,7 +291,10 @@ function _aws_load_credentials_from_cloudshell {
 
     # CloudSHell is already authenticated. We only need to pull out the credentials
     AWS_ID_NAME="$(aws sts get-caller-identity | jq -r '.Arn' | awk -F':' '{print $6}')"
-    AWS_DEFAULT_REGION="${AWS_REGION}"
+    # Only set region if not already set; use CloudShell region or default to us-east-1
+    if [[ -z "${AWS_DEFAULT_REGION}" ]]; then
+        AWS_DEFAULT_REGION="${AWS_REGION:-us-east-1}"
+    fi
     export AWS_ID_NAME AWS_DEFAULT_REGION
 
     _aws_load_credentials_from_json <( curl -s "${AWS_CONTAINER_CREDENTIALS_FULL_URI}"  -H "Authorization: ${AWS_CONTAINER_AUTHORIZATION_TOKEN}" | jq '. + { SessionToken: .Token} | { Credentials: . }' )
@@ -295,7 +311,10 @@ function _aws_load_mfaauth_credentials {
     _config_ini_parser "${1}"
     cfg.section.default
 
-    AWS_DEFAULT_REGION="${region}"
+    # Only set region if not already set; if config region is empty, default to us-east-1
+    if [[ -z "${AWS_DEFAULT_REGION}" ]]; then
+        AWS_DEFAULT_REGION="${region:-us-east-1}"
+    fi
     AWS_ACCESS_KEY_ID="${aws_access_key_id}"
     AWS_SECRET_ACCESS_KEY="${aws_secret_access_key}"
     AWS_MFA_ID="${aws_mfa_id}"
@@ -348,7 +367,10 @@ function _aws_load_krb5formauth_credentials {
     : "${aws_role_idx:=-1}"
     cfg.section.default
 
-    AWS_DEFAULT_REGION="${region}"
+    # Only set region if not already set; if config region is empty, default to us-east-1
+    if [[ -z "${AWS_DEFAULT_REGION}" ]]; then
+        AWS_DEFAULT_REGION="${region:-us-east-1}"
+    fi
     AWS_ACCESS_KEY_ID="${aws_access_key_id}"
     AWS_SECRET_ACCESS_KEY="${aws_secret_access_key}"
     REQUESTED_TOKEN_DURATION="${token_duration:-$DEFAULT_TOKEN_DURATION}"
@@ -403,7 +425,10 @@ function _aws_load_googleauth_credentials {
     _config_ini_parser "${1}"
     cfg.section.default
 
-    AWS_DEFAULT_REGION="${region}"
+    # Only set region if not already set; if config region is empty, default to us-east-1
+    if [[ -z "${AWS_DEFAULT_REGION}" ]]; then
+        AWS_DEFAULT_REGION="${region:-us-east-1}"
+    fi
     REQUESTED_TOKEN_DURATION="${token_duration:-$DEFAULT_TOKEN_DURATION}"
     AWS_ACCESS_KEY_ID="${aws_access_key_id}"
     AWS_SECRET_ACCESS_KEY="${aws_secret_access_key}"
@@ -617,6 +642,8 @@ function _aws_save_account_metadata {
         fi
         # Create the metadata file if we don't already have one
         if [[ ! -f "${HOME}/.wsh/config.d/${AWS_ACCOUNT_NUMBER}.wsh" ]]; then
+            # Ensure AWS_DEFAULT_REGION has a value before saving
+            : "${AWS_DEFAULT_REGION:=us-east-1}"
 
             cat > "${HOME}/.wsh/config.d/${AWS_ACCOUNT_NUMBER}.wsh" <<-EOF
 AWS_ACCOUNT_NUMBER=${AWS_ACCOUNT_NUMBER}
@@ -639,8 +666,14 @@ function _aws_load_account_metadata {
         AWS_ACCOUNT_NUMBER="$(aws sts get-caller-identity | jq -r '.Account')"
         # Create the metadata file if we don't already have one
         if [[ -f "${HOME}/.wsh/config.d/${AWS_ACCOUNT_NUMBER}.wsh" ]]; then
+            # Save current AWS_DEFAULT_REGION value if already set
+            local current_region="${AWS_DEFAULT_REGION}"
             source "${HOME}/.wsh/config.d/${AWS_ACCOUNT_NUMBER}.wsh"
-            export AWS_ACCOUNT_NUMBER AWS_ACCOUNT_ALIAS
+            # Restore AWS_DEFAULT_REGION if it was already set before loading config
+            if [[ -n "${current_region}" ]]; then
+                AWS_DEFAULT_REGION="${current_region}"
+            fi
+            export AWS_ACCOUNT_NUMBER AWS_ACCOUNT_ALIAS AWS_DEFAULT_REGION
         else
             _aws_save_account_metadata
         fi
